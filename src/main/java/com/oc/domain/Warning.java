@@ -11,13 +11,16 @@ import java.util.Date;
 @Data
 public class Warning {
     private Integer id;
+
     private String title;
-    /**
-     * 预警信息内容
-     */
+
     private String content;
+
     private String url;
+
     private Date createdAt;
+
     private Date updatedAt;
+
     private Date deletedAt;
 }

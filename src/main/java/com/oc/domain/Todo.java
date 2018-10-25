@@ -11,18 +11,20 @@ import java.util.Date;
 @Data
 public class Todo {
     private Integer id;
+
     private String title;
-    /**
-     * 待办事件内容
-     */
+
     private String content;
-    private String yUrl;
-    private String refer;
+
+    private String url;
     /**
      * 待办事件状态
      */
     private String state;
+
     private Date createdAt;
+
     private Date updatedAt;
+
     private Date deletedAt;
 }

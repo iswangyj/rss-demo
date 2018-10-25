@@ -30,7 +30,7 @@ public class RssTest {
         try {
             // parseXml(new
             // URL("http://rss.webofknowledge.com/rss?e=4f1b64b6b221ea05&c=8c6909b93bf3eb38a2066a826b61a412"));
-            parseXml(new URL("http://127.0.0.1:8080/xd/rss?q=java&t=atom&h=50&s=50"));
+            parseXml(new URL("http://news.qq.com/newsgn/rss_newsgn.xml"));
             String xml=createXml();
             parseString(xml);
         } catch (Exception e) {

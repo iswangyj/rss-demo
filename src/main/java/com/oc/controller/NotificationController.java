@@ -1,16 +1,23 @@
 package com.oc.controller;
 
-import com.rometools.rome.feed.rss.Channel;
-import com.rometools.rome.feed.rss.Description;
-import com.rometools.rome.feed.rss.Item;
-import com.oc.domain.Notification;
+import com.rometools.rome.feed.synd.*;
+import com.rometools.rome.io.FeedException;
+import com.rometools.rome.io.SyndFeedOutput;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ * 自定义类，可根据需要调整
+ */
+import com.oc.domain.Notification;
 
 /**
  * @author wyj
@@ -19,35 +26,83 @@ import java.util.List;
 @RestController
 @RequestMapping("/rss")
 public class NotificationController {
+    private static final String RSS_TYPE = "rss_2.0";
+    private static final String MIME_TYPE = "application/rss+xml; charset=UTF-8";
+
     @GetMapping("/notification")
-    public Channel getNotificationChannel() {
-        List<Item> items = getItemList(getData());
+    public void getNotificationChannel(HttpServletResponse response) {
+        /**
+         * 静态数据，仅为演示使用
+         */
+        List<Notification> notificationList = getData();
 
-        Channel channel = new Channel("rss_2.0");
-        channel.setTitle("通知频道");
-        channel.setDescription("通知公告列表");
-        channel.setLink("https://www.baidu.com/baidu?wd=通知公告");
-        channel.setItems(items);
+        List<SyndEntry> itemList = getEntries(notificationList);
 
-        return channel;
+        SyndFeed feed = createFeed(itemList);
+
+        SyndFeedOutput output = new SyndFeedOutput();
+
+        try {
+            response.setContentType(MIME_TYPE);
+            output.output(feed, response.getWriter());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (FeedException e) {
+            e.printStackTrace();
+        }
     }
 
-    private List<Item> getItemList(List<Notification> notifications) {
-        List<Item> items = new ArrayList<>();
-        for (Notification notification : notifications) {
-            Item item = new Item();
-            item.setTitle(notification.getTitle());
-            item.setLink(notification.getUrl());
-            item.setPubDate(notification.getUpdatedAt());
-            Description description = new Description();
-            description.setValue(notification.getTitle());
-            item.setDescription(description);
+    /**
+     * 创建一个feed实例
+     *
+     * @param itemList
+     * @return
+     */
+    private SyndFeed createFeed(List<SyndEntry> itemList) {
+        SyndFeed syndFeed = new SyndFeedImpl();
 
-            items.add(item);
+        syndFeed.setFeedType(RSS_TYPE);
+        syndFeed.setTitle("通知频道");
+        syndFeed.setDescription("通知公告列表");
+        syndFeed.setLink("https://www.baidu.com/baidu?wd=通知频道");
+        syndFeed.setEntries(itemList);
+
+        return syndFeed;
+    }
+
+    /**
+     * 获取item列表
+     *
+     * @param notifications
+     * @return
+     */
+    private List<SyndEntry> getEntries(List<Notification> notifications) {
+        List<SyndEntry> items = new ArrayList<>();
+
+        for (Notification notification : notifications) {
+            SyndEntry syndEntry = new SyndEntryImpl();
+
+            syndEntry.setTitle(notification.getTitle());
+            syndEntry.setLink(notification.getUrl());
+            syndEntry.setPublishedDate(notification.getUpdatedAt());
+
+            SyndContent description = new SyndContentImpl();
+            description.setType("text/html");
+            description.setValue(notification.getContent());
+
+            syndEntry.setDescription(description);
+
+            items.add(syndEntry);
         }
+
         return items;
     }
 
+    /**
+     * 静态数据生成
+     *
+     * @return
+     */
     private List<Notification> getData() {
         List<Notification> notificationList = new ArrayList<>();
 
@@ -55,13 +110,20 @@ public class NotificationController {
         notification1.setId(1001);
         notification1.setUpdatedAt(new Date());
         notification1.setTitle("通知9");
+        notification1.setContent("通知9/通知9/通知9/通知9");
         notification1.setUrl("https://www.baidu.com/baidu?wd=通知9");
 
         Notification notification2 = new Notification();
         notification2.setId(1010);
         notification2.setUpdatedAt(new Date());
         notification2.setTitle("通知10");
+        notification2.setContent("通知10/通知10/通知10/通知10");
         notification2.setUrl("https://www.baidu.com/baidu?wd=通知10");
+
+        /**
+         * ...
+         * 此处仅为示例，可根据需求添加新的数据
+         */
 
         notificationList.add(notification1);
         notificationList.add(notification2);

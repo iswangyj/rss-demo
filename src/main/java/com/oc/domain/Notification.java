@@ -11,10 +11,16 @@ import java.util.Date;
 @Data
 public class Notification {
     private Integer id;
+
     private String title;
+
     private String content;
+
     private String url;
+
     private Date createdAt;
+
     private Date updatedAt;
+
     private Date deletedAt;
 }
