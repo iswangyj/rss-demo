@@ -1,9 +1,9 @@
-package com.test.controller;
+package com.oc.controller;
 
 import com.rometools.rome.feed.rss.Channel;
 import com.rometools.rome.feed.rss.Description;
 import com.rometools.rome.feed.rss.Item;
-import com.test.domain.Warning;
+import com.oc.domain.Warning;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

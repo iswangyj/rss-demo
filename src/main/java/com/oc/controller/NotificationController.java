@@ -1,9 +1,9 @@
-package com.test.controller;
+package com.oc.controller;
 
 import com.rometools.rome.feed.rss.Channel;
 import com.rometools.rome.feed.rss.Description;
 import com.rometools.rome.feed.rss.Item;
-import com.test.domain.Notification;
+import com.oc.domain.Notification;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -56,7 +56,7 @@ public class NotificationController {
         notification1.setUpdatedAt(new Date());
         notification1.setTitle("通知9");
         notification1.setUrl("https://www.baidu.com/baidu?wd=通知9");
-        
+
         Notification notification2 = new Notification();
         notification2.setId(1010);
         notification2.setUpdatedAt(new Date());

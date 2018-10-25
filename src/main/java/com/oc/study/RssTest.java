@@ -1,4 +1,4 @@
-package com.test.study;
+package com.oc.study;
 
 import com.rometools.rome.feed.rss.Channel;
 import com.rometools.rome.feed.rss.Description;
