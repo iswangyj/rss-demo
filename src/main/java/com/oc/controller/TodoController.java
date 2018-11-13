@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 @RequestMapping("/rss")
 public class TodoController {
     private static final String RSS_TYPE = "rss_2.0";
-    private static final String MIME_TYPE = "application/rss+xml; charset=UTF-8";
+    private static final String MIME_TYPE = "application/rss+xml;charset=utf-8";
 
     @GetMapping("/todo")
     public void getTodoChannel(HttpServletResponse response) {

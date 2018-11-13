@@ -50,6 +50,7 @@ public class RssTest {
         for (int i = 0; i < entries.size(); i++) {
             SyndEntry entry = (SyndEntry) entries.get(i);
             System.out.println(entry.getTitle());
+            System.out.println(entry.getLink());
         }
         System.out.println("feed size:" + feed.getEntries().size());
     }
