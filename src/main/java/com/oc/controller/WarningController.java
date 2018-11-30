@@ -91,6 +91,10 @@ public class WarningController {
         List<SyndEntry> items = new ArrayList<>();
 
         for (Warning warning : warnings) {
+            /**
+             * 根据用户名筛选数据内容，如当前登录的用户名为“jcz”，则当前待办事件都是"jcz"的待办事件
+             * 根据登录用户名"jcz"过滤后，当前示例数据将只显示"预警信息1"和
+             */
             if (warning.getUsername().equals(username)){
                 SyndEntry syndEntry = new SyndEntryImpl();
 
@@ -124,6 +128,7 @@ public class WarningController {
         warning1.setUrl("http://www.baidu.com");
         warning1.setContent("预警信息1/预警信息1/预警信息1");
         warning1.setUpdatedAt(new Date());
+        warning1.setUsername("jcz");
 
         Warning warning2 = new Warning();
         warning2.setId(2);
@@ -131,6 +136,7 @@ public class WarningController {
         warning2.setUrl("http://www.github.com");
         warning2.setContent("预警信息2/预警信息2/预警信息2");
         warning2.setUpdatedAt(new Date());
+        warning2.setUsername("gj");
 
         /**
          * ......

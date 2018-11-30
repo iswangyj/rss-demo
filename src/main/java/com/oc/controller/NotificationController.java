@@ -47,14 +47,13 @@ public class NotificationController {
          */
         List<Notification> notificationList = getData();
 
-        List<SyndEntry> itemList = getEntries(notificationList,attributes.get("name").toString());
+        List<SyndEntry> itemList = getEntries(notificationList,(String) attributes.get("name"));
 
         SyndFeed feed = createFeed(itemList);
 
         SyndFeedOutput output = new SyndFeedOutput();
 
         try {
-
             response.setContentType(MIME_TYPE);
             output.output(feed, response.getWriter());
         } catch (IOException e) {
@@ -92,12 +91,13 @@ public class NotificationController {
         List<SyndEntry> items = new ArrayList<>();
 
         for (Notification notification : notifications) {
-            SyndEntry syndEntry = new SyndEntryImpl();
-
             /**
-             * 根据用户名筛选数据内容，如当前登录的用户名为“jcz”，则当前待办事件都是“jzc”的待办事件
+             * 根据用户名筛选数据内容，如当前登录的用户名为“jcz”，则当前待办事件都是"jcz"的待办事件
+             * 根据登录用户名"jcz"过滤后，当前示例数据将只显示"通知9"
              */
             if (notification.getUsername().equals(username)) {
+                SyndEntry syndEntry = new SyndEntryImpl();
+
                 syndEntry.setTitle(notification.getTitle());
                 syndEntry.setLink(notification.getUrl());
                 syndEntry.setPublishedDate(notification.getUpdatedAt());
@@ -137,7 +137,7 @@ public class NotificationController {
         notification2.setTitle("通知10");
         notification2.setContent("通知10/通知10/通知10/通知10");
         notification2.setUrl("https://www.baidu.com/baidu?wd=通知10");
-        notification1.setUsername("gj");
+        notification2.setUsername("gj");
 
         /**
          * ...

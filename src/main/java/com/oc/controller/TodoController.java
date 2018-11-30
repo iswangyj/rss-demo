@@ -96,6 +96,7 @@ public class TodoController {
 
             /**
              * 根据用户名筛选数据内容，如当前登录的用户名为“jcz”，则当前待办事件都是“jzc”的待办事件
+             * 根据登录用户名"jcz"过滤后，当前示例数据将只显示"待办事件6"和"待办事件7"
              */
             if (todo.getUsername().equals(username)) {
                 syndEntry.setTitle(todo.getTitle());
