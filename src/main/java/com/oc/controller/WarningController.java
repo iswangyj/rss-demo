@@ -4,15 +4,18 @@ package com.oc.controller;
 import com.rometools.rome.feed.synd.*;
 import com.rometools.rome.io.FeedException;
 import com.rometools.rome.io.SyndFeedOutput;
+import org.jasig.cas.client.authentication.AttributePrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 自定义类，可根据需要调整
@@ -30,13 +33,21 @@ public class WarningController {
     private static final String MIME_TYPE = "application/rss+xml; charset=UTF-8";
 
     @GetMapping("/warning")
-    public void getWarningChannel(HttpServletResponse response) {
+    public void getWarningChannel(HttpServletRequest request, HttpServletResponse response) {
+        /**
+         * 获取从代理端登录的用户信息，将其属性放入map中
+         * 根据cas server验证返回属性分别为accountId、realname、name，其中name为登录用户名
+         * 所有属性以key-value方式存放至map，根据用户名验证可以通过attributes.get("name").toString()取得用户名
+         */
+        AttributePrincipal principal = (AttributePrincipal) request.getUserPrincipal();
+        Map<String, Object> attributes = principal.getAttributes();
+
         /**
          * 静态数据，仅为演示使用
          */
         List<Warning> warningList = getData();
 
-        List<SyndEntry> itemList = getEntries(warningList);
+        List<SyndEntry> itemList = getEntries(warningList,(String) attributes.get("name"));
 
         SyndFeed feed = createFeed(itemList);
 
@@ -76,22 +87,24 @@ public class WarningController {
      * @param warnings
      * @return
      */
-    private List<SyndEntry> getEntries(List<Warning> warnings) {
+    private List<SyndEntry> getEntries(List<Warning> warnings,String username) {
         List<SyndEntry> items = new ArrayList<>();
 
         for (Warning warning : warnings) {
-            SyndEntry syndEntry = new SyndEntryImpl();
+            if (warning.getUsername().equals(username)){
+                SyndEntry syndEntry = new SyndEntryImpl();
 
-            syndEntry.setTitle(warning.getTitle());
-            syndEntry.setPublishedDate(warning.getUpdatedAt());
-            syndEntry.setLink(warning.getUrl());
+                syndEntry.setTitle(warning.getTitle());
+                syndEntry.setPublishedDate(warning.getUpdatedAt());
+                syndEntry.setLink(warning.getUrl());
 
-            SyndContent description = new SyndContentImpl();
-            description.setType("text/html");
-            description.setValue(warning.getContent());
-            syndEntry.setDescription(description);
+                SyndContent description = new SyndContentImpl();
+                description.setType("text/html");
+                description.setValue(warning.getContent());
+                syndEntry.setDescription(description);
 
-            items.add(syndEntry);
+                items.add(syndEntry);
+            }
         }
 
         return items;

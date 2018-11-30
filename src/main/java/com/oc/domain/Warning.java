@@ -23,4 +23,6 @@ public class Warning {
     private Date updatedAt;
 
     private Date deletedAt;
+
+    private String username;
 }

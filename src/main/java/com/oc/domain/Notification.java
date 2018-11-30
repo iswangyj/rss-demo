@@ -23,4 +23,6 @@ public class Notification {
     private Date updatedAt;
 
     private Date deletedAt;
+
+    private String username;
 }

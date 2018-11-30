@@ -27,4 +27,6 @@ public class Todo {
     private Date updatedAt;
 
     private Date deletedAt;
+
+    private String username;
 }
