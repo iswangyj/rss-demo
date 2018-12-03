@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -31,6 +33,7 @@ import com.oc.domain.Warning;
 public class WarningController {
     private static final String RSS_TYPE = "rss_2.0";
     private static final String MIME_TYPE = "application/rss+xml; charset=UTF-8";
+    private DateFormat dcDate = new SimpleDateFormat("yyyy-MM-dd");
 
     @GetMapping("/warning")
     public void getWarningChannel(HttpServletRequest request, HttpServletResponse response) {
@@ -41,6 +44,14 @@ public class WarningController {
          */
         AttributePrincipal principal = (AttributePrincipal) request.getUserPrincipal();
         Map<String, Object> attributes = principal.getAttributes();
+
+        String from = request.getParameter("from");
+        Date date = null;
+        try {
+            date = dcDate.parse(from);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
 
         /**
          * 静态数据，仅为演示使用

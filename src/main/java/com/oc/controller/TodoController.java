@@ -9,10 +9,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.FieldPosition;
+import java.text.ParsePosition;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.text.SimpleDateFormat;
 
 /**
  * 自定义类，可根据需要调整
@@ -21,7 +25,6 @@ import com.oc.domain.Todo;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 /**
  * @author wyj
@@ -32,6 +35,7 @@ import javax.servlet.http.HttpSession;
 public class TodoController {
     private static final String RSS_TYPE = "rss_2.0";
     private static final String MIME_TYPE = "application/rss+xml;charset=utf-8";
+    private DateFormat dcDate = new SimpleDateFormat("yyyy-MM-dd");
 
     @GetMapping("/todo")
     public void getTodoChannel(HttpServletRequest request, HttpServletResponse response) {
@@ -42,6 +46,16 @@ public class TodoController {
          */
         AttributePrincipal principal = (AttributePrincipal) request.getUserPrincipal();
         Map<String, Object> attributes = principal.getAttributes();
+
+
+        String from = request.getParameter("from");
+        Date date = null;
+        try {
+            date = dcDate.parse(from);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
 
         /**
          * 静态数据，仅为演示使用
