@@ -45,6 +45,10 @@ public class WarningController {
         AttributePrincipal principal = (AttributePrincipal) request.getUserPrincipal();
         Map<String, Object> attributes = principal.getAttributes();
 
+
+        /**
+         * 获取parameter
+         */
         String from = request.getParameter("from");
         Date date = null;
         try {
@@ -58,7 +62,7 @@ public class WarningController {
          */
         List<Warning> warningList = getData();
 
-        List<SyndEntry> itemList = getEntries(warningList,(String) attributes.get("name"));
+        List<SyndEntry> itemList = getEntries(warningList);
 
         SyndFeed feed = createFeed(itemList);
 
@@ -98,28 +102,22 @@ public class WarningController {
      * @param warnings
      * @return
      */
-    private List<SyndEntry> getEntries(List<Warning> warnings,String username) {
+    private List<SyndEntry> getEntries(List<Warning> warnings) {
         List<SyndEntry> items = new ArrayList<>();
 
         for (Warning warning : warnings) {
-            /**
-             * 根据用户名筛选数据内容，如当前登录的用户名为“jcz”，则当前待办事件都是"jcz"的待办事件
-             * 根据登录用户名"jcz"过滤后，当前示例数据将只显示"预警信息1"和
-             */
-            if (warning.getUsername().equals(username)){
-                SyndEntry syndEntry = new SyndEntryImpl();
+            SyndEntry syndEntry = new SyndEntryImpl();
 
-                syndEntry.setTitle(warning.getTitle());
-                syndEntry.setPublishedDate(warning.getUpdatedAt());
-                syndEntry.setLink(warning.getUrl());
+            syndEntry.setTitle(warning.getTitle());
+            syndEntry.setPublishedDate(warning.getUpdatedAt());
+            syndEntry.setLink(warning.getUrl());
 
-                SyndContent description = new SyndContentImpl();
-                description.setType("text/html");
-                description.setValue(warning.getContent());
-                syndEntry.setDescription(description);
+            SyndContent description = new SyndContentImpl();
+            description.setType("text/html");
+            description.setValue(warning.getContent());
+            syndEntry.setDescription(description);
 
-                items.add(syndEntry);
-            }
+            items.add(syndEntry);
         }
 
         return items;

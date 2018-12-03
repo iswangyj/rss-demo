@@ -45,6 +45,10 @@ public class NotificationController {
         AttributePrincipal principal = (AttributePrincipal) request.getUserPrincipal();
         Map<String, Object> attributes = principal.getAttributes();
 
+
+        /**
+         * 获取parameter
+         */
         String from = request.getParameter("from");
         Date date = null;
         try {
@@ -58,7 +62,7 @@ public class NotificationController {
          */
         List<Notification> notificationList = getData();
 
-        List<SyndEntry> itemList = getEntries(notificationList,(String) attributes.get("name"));
+        List<SyndEntry> itemList = getEntries(notificationList);
 
         SyndFeed feed = createFeed(itemList);
 
@@ -98,29 +102,24 @@ public class NotificationController {
      * @param notifications
      * @return
      */
-    private List<SyndEntry> getEntries(List<Notification> notifications,String username) {
+    private List<SyndEntry> getEntries(List<Notification> notifications) {
         List<SyndEntry> items = new ArrayList<>();
 
         for (Notification notification : notifications) {
-            /**
-             * 根据用户名筛选数据内容，如当前登录的用户名为“jcz”，则当前待办事件都是"jcz"的待办事件
-             * 根据登录用户名"jcz"过滤后，当前示例数据将只显示"通知9"
-             */
-            if (notification.getUsername().equals(username)) {
-                SyndEntry syndEntry = new SyndEntryImpl();
+            SyndEntry syndEntry = new SyndEntryImpl();
 
-                syndEntry.setTitle(notification.getTitle());
-                syndEntry.setLink(notification.getUrl());
-                syndEntry.setPublishedDate(notification.getUpdatedAt());
+            syndEntry.setTitle(notification.getTitle());
+            syndEntry.setLink(notification.getUrl());
+            syndEntry.setPublishedDate(notification.getUpdatedAt());
 
-                SyndContent description = new SyndContentImpl();
-                description.setType("text/html");
-                description.setValue(notification.getContent());
+            SyndContent description = new SyndContentImpl();
+            description.setType("text/html");
+            description.setValue(notification.getContent());
 
-                syndEntry.setDescription(description);
+            syndEntry.setDescription(description);
 
-                items.add(syndEntry);
-            }
+            items.add(syndEntry);
+
         }
 
         return items;

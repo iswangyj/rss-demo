@@ -4,9 +4,8 @@ import com.rometools.rome.feed.synd.*;
 import com.rometools.rome.io.FeedException;
 import com.rometools.rome.io.SyndFeedOutput;
 import org.jasig.cas.client.authentication.AttributePrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -36,9 +35,26 @@ public class TodoController {
     private static final String RSS_TYPE = "rss_2.0";
     private static final String MIME_TYPE = "application/rss+xml;charset=utf-8";
     private DateFormat dcDate = new SimpleDateFormat("yyyy-MM-dd");
+    private static final String PENDING = "pending";
+    private static final String RESOLVED = "resolved";
 
-    @GetMapping("/todo")
-    public void getTodoChannel(HttpServletRequest request, HttpServletResponse response) {
+    /**
+     * 待办频道,根据待办事件状态可筛选频道内容
+     * 状态：pending/resolved（未处理/已处理）
+     *
+     * @param request
+     * @param response
+     */
+
+    @GetMapping("/todo/{state}")
+    public void getTodoChannel(@PathVariable String state, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        /**
+         * 判断路径给出的状态是否合法
+         */
+        if (!stateExist(state)) {
+            throw new Exception(String.valueOf(HttpStatus.BAD_REQUEST));
+        }
+
         /**
          * 获取从代理端登录的用户信息，将其属性放入map中
          * 根据cas server验证返回属性分别为accountId、realname、name，其中name为登录用户名
@@ -48,11 +64,14 @@ public class TodoController {
         Map<String, Object> attributes = principal.getAttributes();
 
 
+        /**
+         * 获取parameter
+         */
         String from = request.getParameter("from");
         Date date = null;
         try {
             date = dcDate.parse(from);
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -62,7 +81,7 @@ public class TodoController {
          */
         List<Todo> todoList = getData();
 
-        List<SyndEntry> itemList = getEntries(todoList,(String) attributes.get("name"));
+        List<SyndEntry> itemList = getEntries(todoList, state);
 
         SyndFeed feed = createFeed(itemList);
 
@@ -102,17 +121,13 @@ public class TodoController {
      * @param todoList
      * @return
      */
-    private List<SyndEntry> getEntries(List<Todo> todoList, String username) {
+    private List<SyndEntry> getEntries(List<Todo> todoList, String state) {
         List<SyndEntry> items = new ArrayList<>();
 
         for (Todo todo : todoList) {
-            SyndEntry syndEntry = new SyndEntryImpl();
+            if (todo.getState().equals(state)) {
+                SyndEntry syndEntry = new SyndEntryImpl();
 
-            /**
-             * 根据用户名筛选数据内容，如当前登录的用户名为“jcz”，则当前待办事件都是“jzc”的待办事件
-             * 根据登录用户名"jcz"过滤后，当前示例数据将只显示"待办事件6"和"待办事件7"
-             */
-            if (todo.getUsername().equals(username)) {
                 syndEntry.setTitle(todo.getTitle());
                 syndEntry.setLink(todo.getUrl());
                 syndEntry.setPublishedDate(todo.getUpdatedAt());
@@ -152,7 +167,7 @@ public class TodoController {
         todo2.setTitle("待办事件6");
         todo2.setContent("待办事件6/待办事件6/待办事件6");
         todo2.setUrl("https://www.baidu.com/baidu?wd=待办事件6");
-        todo2.setState("processed");
+        todo2.setState("resolved");
         todo2.setUpdatedAt(new Date());
         todo2.setUsername("jcz");
 
@@ -162,9 +177,38 @@ public class TodoController {
         todo3.setTitle("待办事件7");
         todo3.setContent("待办事件7/待办事件7/待办事件7");
         todo3.setUrl("https://www.baidu.com/baidu?wd=待办事件7");
-        todo3.setState("processed");
+        todo3.setState("resolved");
         todo3.setUpdatedAt(new Date());
         todo3.setUsername("jcz");
+
+        Todo todo4 = new Todo();
+        todo4.setId(112);
+        todo4.setTitle("待办事件8");
+        todo4.setContent("待办事件8/待办事件8/待办事件8");
+        todo4.setUrl("https://www.baidu.com/baidu?wd=待办事件8");
+        todo4.setState("pending");
+        todo4.setUpdatedAt(new Date());
+        todo4.setUsername("gj");
+
+
+        Todo todo5 = new Todo();
+        todo5.setId(115);
+        todo5.setTitle("待办事件9");
+        todo5.setContent("待办事件9/待办事件9/待办事件9");
+        todo5.setUrl("https://www.baidu.com/baidu?wd=待办事件6");
+        todo5.setState("resolved");
+        todo5.setUpdatedAt(new Date());
+        todo5.setUsername("jcz");
+
+
+        Todo todo6 = new Todo();
+        todo6.setId(116);
+        todo6.setTitle("待办事件10");
+        todo6.setContent("待办事件10/待办事件10/待办事件10");
+        todo6.setUrl("https://www.baidu.com/baidu?wd=待办事件10");
+        todo6.setState("pending");
+        todo6.setUpdatedAt(new Date());
+        todo6.setUsername("jcz");
 
         /**
          * ...
@@ -174,7 +218,14 @@ public class TodoController {
         todoList.add(todo1);
         todoList.add(todo2);
         todoList.add(todo3);
+        todoList.add(todo4);
+        todoList.add(todo5);
+        todoList.add(todo6);
 
         return todoList;
+    }
+
+    private Boolean stateExist(String state) {
+        return PENDING.equals(state) || RESOLVED.equals(state);
     }
 }
