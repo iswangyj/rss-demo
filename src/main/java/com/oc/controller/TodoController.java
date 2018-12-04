@@ -1,5 +1,6 @@
 package com.oc.controller;
 
+import com.oc.enums.StateEnum;
 import com.rometools.rome.feed.synd.*;
 import com.rometools.rome.io.FeedException;
 import com.rometools.rome.io.SyndFeedOutput;
@@ -35,26 +36,16 @@ public class TodoController {
     private static final String RSS_TYPE = "rss_2.0";
     private static final String MIME_TYPE = "application/rss+xml;charset=utf-8";
     private DateFormat dcDate = new SimpleDateFormat("yyyy-MM-dd");
-    private static final String PENDING = "pending";
-    private static final String RESOLVED = "resolved";
 
     /**
      * 待办频道,根据待办事件状态可筛选频道内容
-     * 状态：pending/resolved（未处理/已处理）
      *
      * @param request
      * @param response
      */
 
-    @GetMapping("/todo/{state}")
-    public void getTodoChannel(@PathVariable String state, HttpServletRequest request, HttpServletResponse response) throws Exception {
-        /**
-         * 判断路径给出的状态是否合法
-         */
-        if (!stateExist(state)) {
-            throw new Exception(String.valueOf(HttpStatus.BAD_REQUEST));
-        }
-
+    @GetMapping("/todo/pending")
+    public void getPending(HttpServletRequest request, HttpServletResponse response) throws Exception {
         /**
          * 获取从代理端登录的用户信息，将其属性放入map中
          * 根据cas server验证返回属性分别为accountId、realname、name，其中name为登录用户名
@@ -81,7 +72,58 @@ public class TodoController {
          */
         List<Todo> todoList = getData();
 
-        List<SyndEntry> itemList = getEntries(todoList, state);
+        List<SyndEntry> itemList = getEntries(todoList, StateEnum.PENDING);
+
+        SyndFeed feed = createFeed(itemList);
+
+        SyndFeedOutput output = new SyndFeedOutput();
+
+        try {
+            response.setContentType(MIME_TYPE);
+            output.output(feed, response.getWriter());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (FeedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 待办频道,根据待办事件状态可筛选频道内容
+     *
+     * @param request
+     * @param response
+     */
+
+    @GetMapping("/todo/resolved")
+    public void getResolved(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        /**
+         * 获取从代理端登录的用户信息，将其属性放入map中
+         * 根据cas server验证返回属性分别为accountId、realname、name，其中name为登录用户名
+         * 所有属性以key-value方式存放至map，根据用户名验证可以通过attributes.get("name").toString()取得用户名
+         */
+        AttributePrincipal principal = (AttributePrincipal) request.getUserPrincipal();
+        Map<String, Object> attributes = principal.getAttributes();
+
+
+        /**
+         * 获取parameter
+         */
+        String from = request.getParameter("from");
+        Date date = null;
+        try {
+            date = dcDate.parse(from);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+        /**
+         * 静态数据，仅为演示使用
+         */
+        List<Todo> todoList = getData();
+
+        List<SyndEntry> itemList = getEntries(todoList, StateEnum.RESOLVED);
 
         SyndFeed feed = createFeed(itemList);
 
@@ -121,21 +163,20 @@ public class TodoController {
      * @param todoList
      * @return
      */
-    private List<SyndEntry> getEntries(List<Todo> todoList, String state) {
+    private List<SyndEntry> getEntries(List<Todo> todoList, StateEnum state) {
         List<SyndEntry> items = new ArrayList<>();
 
         for (Todo todo : todoList) {
-            if (todo.getState().equals(state)) {
+            if (todo.getState().equals(state.getStateName())) {
                 SyndEntry syndEntry = new SyndEntryImpl();
 
                 syndEntry.setTitle(todo.getTitle());
                 syndEntry.setLink(todo.getUrl());
                 syndEntry.setPublishedDate(todo.getUpdatedAt());
-                syndEntry.setComments(todo.getState());
 
                 SyndContent description = new SyndContentImpl();
                 description.setType("text/html");
-                description.setValue(todo.getContent());
+                description.setValue(getDescription(state));
                 syndEntry.setDescription(description);
 
                 items.add(syndEntry);
@@ -206,7 +247,7 @@ public class TodoController {
         todo6.setTitle("待办事件10");
         todo6.setContent("待办事件10/待办事件10/待办事件10");
         todo6.setUrl("https://www.baidu.com/baidu?wd=待办事件10");
-        todo6.setState("pending");
+        todo6.setState("resolved");
         todo6.setUpdatedAt(new Date());
         todo6.setUsername("jcz");
 
@@ -225,7 +266,13 @@ public class TodoController {
         return todoList;
     }
 
-    private Boolean stateExist(String state) {
-        return PENDING.equals(state) || RESOLVED.equals(state);
+    /**
+     * 待办事件状态信息以JSON形式生成
+     *
+     * @param state
+     * @return
+     */
+    private String getDescription(StateEnum state) {
+        return "{\"state\":\"" + state.getStateName() + "\"}";
     }
 }
