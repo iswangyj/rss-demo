@@ -5,13 +5,10 @@ import com.rometools.rome.feed.synd.*;
 import com.rometools.rome.io.FeedException;
 import com.rometools.rome.io.SyndFeedOutput;
 import org.jasig.cas.client.authentication.AttributePrincipal;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.text.DateFormat;
-import java.text.FieldPosition;
-import java.text.ParsePosition;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -38,14 +35,17 @@ public class TodoController {
     private DateFormat dcDate = new SimpleDateFormat("yyyy-MM-dd");
 
     /**
-     * 待办频道,根据待办事件状态可筛选频道内容
+     * 获取待办频道
      *
-     * @param request
+     * @param state
      * @param response
+     * @throws Exception
      */
-
-    @GetMapping("/todo/pending")
-    public void getPending(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    @GetMapping("/todo")
+    public void getTodoChannel(@RequestParam(value = "state")String state, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        if (!stateExists(state)) {
+            throw new Exception("state is not exists!");
+        }
         /**
          * 获取从代理端登录的用户信息，将其属性放入map中
          * 根据cas server验证返回属性分别为accountId、realname、name，其中name为登录用户名
@@ -71,59 +71,12 @@ public class TodoController {
          * 静态数据，仅为演示使用
          */
         List<Todo> todoList = getData();
-
-        List<SyndEntry> itemList = getEntries(todoList, StateEnum.PENDING);
-
-        SyndFeed feed = createFeed(itemList);
-
-        SyndFeedOutput output = new SyndFeedOutput();
-
-        try {
-            response.setContentType(MIME_TYPE);
-            output.output(feed, response.getWriter());
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (FeedException e) {
-            e.printStackTrace();
+        List<SyndEntry> itemList;
+        if (state.equals(StateEnum.PENDING.getStateName())){
+            itemList = getEntries(todoList, StateEnum.PENDING);
+        } else {
+            itemList = getEntries(todoList, StateEnum.RESOLVED);
         }
-    }
-
-    /**
-     * 待办频道,根据待办事件状态可筛选频道内容
-     *
-     * @param request
-     * @param response
-     */
-
-    @GetMapping("/todo/resolved")
-    public void getResolved(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        /**
-         * 获取从代理端登录的用户信息，将其属性放入map中
-         * 根据cas server验证返回属性分别为accountId、realname、name，其中name为登录用户名
-         * 所有属性以key-value方式存放至map，根据用户名验证可以通过attributes.get("name").toString()取得用户名
-         */
-        AttributePrincipal principal = (AttributePrincipal) request.getUserPrincipal();
-        Map<String, Object> attributes = principal.getAttributes();
-
-
-        /**
-         * 获取parameter
-         */
-        String from = request.getParameter("from");
-        Date date = null;
-        try {
-            date = dcDate.parse(from);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-
-        /**
-         * 静态数据，仅为演示使用
-         */
-        List<Todo> todoList = getData();
-
-        List<SyndEntry> itemList = getEntries(todoList, StateEnum.RESOLVED);
 
         SyndFeed feed = createFeed(itemList);
 
@@ -274,5 +227,9 @@ public class TodoController {
      */
     private String getDescription(StateEnum state) {
         return "{\"state\":\"" + state.getStateName() + "\"}";
+    }
+
+    private boolean stateExists(String state) {
+        return StateEnum.PENDING.getStateName().equals(state) || StateEnum.RESOLVED.getStateName().equals(state);
     }
 }
